@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Cloud Storage - {{ user }}</title>
+
+    <!-- External Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-glass: rgba(255, 255, 255, 0.08);
+            --bg-hover: rgba(102, 126, 234, 0.1);
+
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d6;
+            --text-muted: #8892a0;
+            --text-dark: #2d3748;
+
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 25px rgba(102, 126, 234, 0.3);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            z-index: -2;
+            animation: gradientShift 20s ease infinite;
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.03"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.03"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.02"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Modern Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            transition: var(--transition-base);
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb-nav {
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .breadcrumb {
+            background: transparent;
+            margin: 0;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+
+        .breadcrumb-item a:hover {
+            color: #667eea;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* File Browser Section */
+        .file-browser {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .section-title i {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.75rem;
+        }
+
+        /* Search and Actions */
+        .file-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background: white;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            transition: var(--transition-base);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .create-folder-btn {
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .create-folder-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* File List */
+        .file-list {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .file-header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 120px 100px 120px;
+            gap: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .file-row {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px 120px;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .file-row:hover {
+            background: var(--bg-hover);
+            transform: scale(1.01);
+        }
+
+        .file-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .file-icon.folder {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .file-icon.image {
+            background: linear-gradient(135deg, #ec4899, #f97316);
+            color: white;
+        }
+
+        .file-icon.video {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+        }
+
+        .file-icon.audio {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+        }
+
+        .file-icon.document {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .file-icon.other {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        .file-details h4 {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .file-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .file-size {
+            font-weight: 500;
+            color: var(--text-dark);
+            text-align: right;
+        }
+
+        .file-date {
+            font-weight: 500;
+            color: #000000;
+            text-align: right;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .action-btn.download {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .action-btn.delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            font-size: 0.95rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: slideInRight 0.5s ease-out 0.3s both;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .card-title i {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25rem;
+        }
+
+        /* Upload Section */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.02), rgba(118, 75, 162, 0.02));
+            transition: var(--transition-base);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+        }
+
+        .upload-zone.dragover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            box-shadow: var(--shadow-glow);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-progress {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Storage Stats */
+        .storage-stats {
+            margin-bottom: 1.5rem;
+        }
+
+        .storage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .storage-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .storage-percentage {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .storage-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 6px;
+        }
+
+        .storage-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* File Type Breakdown */
+        .file-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .type-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: var(--radius-md);
+            border-left: 3px solid #667eea;
+        }
+
+        .type-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .type-info {
+            flex: 1;
+        }
+
+        .type-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+
+        .type-size {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Recent Files */
+        .recent-files {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .recent-files::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .recent-files::-webkit-scrollbar-track {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .recent-files::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+            transition: var(--transition-fast);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .recent-item:hover {
+            background: var(--bg-hover);
+            transform: translateX(5px);
+        }
+
+        .recent-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            color: #ffffff;
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .recent-icon i {
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .recent-icon.image {
+            background: linear-gradient(135deg, #ec4899, #f97316);
+        }
+
+        .recent-icon.video {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+        }
+
+        .recent-icon.audio {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+
+        .recent-icon.document {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .recent-icon.other {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .recent-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .recent-name {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recent-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-base);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: var(--transition-base);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: var(--transition-base);
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            z-index: 10001;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .sidebar {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .file-header,
+            .file-row {
+                grid-template-columns: 1fr 80px 60px 80px;
+                padding: 0.75rem 1rem;
+                gap: 0.5rem;
+            }
+
+            .file-controls {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .file-types {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .file-header {
+                display: none;
+            }
+
+            .file-row {
+                grid-template-columns: 1fr auto;
+                gap: 0.5rem;
+            }
+
+            .file-info {
+                grid-column: 1 / -1;
+                margin-bottom: 0.5rem;
+            }
+
+            .file-size,
+            .file-date,
+            .file-actions {
+                justify-self: end;
+            }
+
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-cloud-fill"></i>
+                Cloud Storage
+            </a>
+
+            <div class="navbar-nav ms-auto">
+                {% if user %}
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user[0].upper() }}
+                    </div>
+                    <span>{{ user }}</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        {% if user %}
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb-nav" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                {% for crumb in breadcrumbs %}
+                <li class="breadcrumb-item{% if crumb.path == current_path %} active{% endif %}">
+                    {% if crumb.path != current_path %}
+                    <a href="{{ url_for('index', path=crumb.path) }}">{{ crumb.name }}</a>
+                    {% else %}
+                    {{ crumb.name }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ol>
+        </nav>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- File Browser -->
+            <div class="file-browser">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="bi bi-folder-fill"></i>
+                        Files
+                        {% if current_path %}
+                        <span class="text-muted">({{ items|length }} items)</span>
+                        {% endif %}
+                    </h2>
+                </div>
+
+                <!-- Search and Controls -->
+                <div class="file-controls">
+                    <div class="search-box">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search files and folders...">
+                    </div>
+                    <button class="create-folder-btn" onclick="showCreateFolderModal()">
+                        <i class="bi bi-folder-plus"></i>
+                        New Folder
+                    </button>
+                </div>
+
+                <!-- File List -->
+                <div class="file-list">
+                    <div class="file-header">
+                        <div>Name</div>
+                        <div>Date Modified</div>
+                        <div>Size</div>
+                        <div>Actions</div>
+                    </div>
+
+                    {% if items %}
+                    {% for item in items %}
+                    <div class="file-row" onclick="handleFileClick('{{ item.name }}', {{ item.is_folder|tojson }}, '{{ current_path }}')">
+                        <div class="file-info">
+                            <div class="file-icon {% if item.is_folder %}folder{% else %}{{ item.category|lower }}{% endif %}">
+                                {% if item.is_folder %}
+                                <i class="bi bi-folder-fill"></i>
+                                {% else %}
+                                <i class="{{ item.icon }}"></i>
+                                {% endif %}
+                            </div>
+                            <div class="file-details">
+                                <h4>{{ item.name }}</h4>
+                                <div class="file-meta">
+                                    {% if item.is_folder %}
+                                    Folder • {{ item.item_count }} items
+                                    {% else %}
+                                    {{ item.category }} • Modified {{ item.upload_time }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="file-date">{{ item.upload_time }}</div>
+                        <div class="file-size">
+                            {% if item.is_folder %}
+                            --
+                            {% else %}
+                            {{ item.size_readable }}
+                            {% endif %}
+                        </div>
+                        <div class="file-actions" onclick="event.stopPropagation()">
+                            {% if not item.is_folder %}
+                            <button class="action-btn download" onclick="downloadFile('{{ item.name }}', '{{ current_path }}')" title="Download">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            {% endif %}
+                            <button class="action-btn delete" onclick="deleteItem('{{ item.name }}', {{ item.is_folder|tojson }}, '{{ current_path }}')" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-folder-x"></i>
+                        </div>
+                        <div class="empty-title">No files found</div>
+                        <div class="empty-text">This folder is empty. Upload some files or create a new folder to get started.</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Upload Zone -->
+                <div class="sidebar-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-cloud-upload-fill"></i>
+                        Upload Files
+                    </h3>
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                        </div>
+                        <div class="upload-text">Drop files here or click to browse</div>
+                        <div class="upload-hint">Support for all file types up to 1GB</div>
+                        <input type="file" id="fileInput" multiple>
+                    </div>
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="text-center text-muted" id="progressText">Uploading...</div>
+                    </div>
+                </div>
+
+                <!-- Storage Stats -->
+                <div class="sidebar-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-pie-chart-fill"></i>
+                        Storage Usage
+                    </h3>
+
+                    <div class="storage-stats">
+                        <div class="storage-header">
+                            <span class="storage-label">Used Space</span>
+                            <span class="storage-percentage">{{ storage_percentage }}%</span>
+                        </div>
+                        <div class="storage-bar">
+                            <div class="storage-fill" style="width: {{ storage_percentage }}%"></div>
+                        </div>
+                        <div class="storage-info">
+                            <span>{{ used_storage }} used</span>
+                            <span>{{ remaining_storage }} free</span>
+                        </div>
+                    </div>
+
+                    <div class="file-types">
+                        {% for category, data in storage_breakdown.items() %}
+                        <div class="type-item">
+                            <div class="type-color" style="background: {{ data.color }}"></div>
+                            <div class="type-info">
+                                <div class="type-name">{{ category }}</div>
+                                <div class="type-size">{{ data.size_readable }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Recent Files -->
+                <div class="sidebar-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Files
+                    </h3>
+                    <div class="recent-files">
+                        {% set recent_items = items[:5] %}
+                        {% if recent_items %}
+                        {% for item in recent_items %}
+                        {% if not item.is_folder %}
+                        <div class="recent-item">
+                            <div class="recent-icon {{ item.category|lower }}">
+                                <i class="{{ item.icon }}"></i>
+                            </div>
+                            <div class="recent-info">
+                                <div class="recent-name">{{ item.name }}</div>
+                                <div class="recent-meta">{{ item.upload_time }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-clock-history" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <div class="mt-2">No recent files</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Login Prompt -->
+        <div class="text-center py-5">
+            <div style="font-size: 4rem; color: rgba(255, 255, 255, 0.3); margin-bottom: 2rem;">
+                <i class="bi bi-cloud-fill"></i>
+            </div>
+            <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Welcome to Cloud Storage</h2>
+            <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">
+                Secure, fast, and reliable file storage for all your needs.
+            </p>
+            <div>
+                <a href="{{ url_for('login') }}" class="btn btn-primary me-3" style="padding: 0.75rem 2rem; font-size: 1.1rem;">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-outline-light" style="padding: 0.75rem 2rem; font-size: 1.1rem;">
+                    <i class="bi bi-person-plus"></i> Register
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Create Folder Modal -->
+    <div class="modal-overlay" id="createFolderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Folder</h3>
+                <button class="modal-close" onclick="hideCreateFolderModal()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <form id="createFolderForm">
+                <div class="form-group">
+                    <label class="form-label" for="folderName">Folder Name</label>
+                    <input type="text" class="form-input" id="folderName" name="folder_name" placeholder="Enter folder name" required>
+                </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-secondary me-2" onclick="hideCreateFolderModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-folder-plus"></i> Create Folder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        // Configure Toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000",
+            "extendedTimeOut": "1000"
+        };
+
+        // Get current path
+        const currentPath = '{{ current_path }}';
+
+        // File operations
+        function handleFileClick(name, isFolder, path) {
+            if (isFolder) {
+                const newPath = path ? `${path}/${name}` : name;
+                window.location.href = `{{ url_for('index') }}?path=${encodeURIComponent(newPath)}`;
+            } else {
+                // Open file for viewing
+                const url = `{{ url_for('preview') }}?filename=${encodeURIComponent(name)}&path=${encodeURIComponent(path)}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        function navigateToItem(name, isFolder) {
+            if (isFolder) {
+                const newPath = currentPath ? `${currentPath}/${name}` : name;
+                window.location.href = `{{ url_for('index') }}?path=${encodeURIComponent(newPath)}`;
+            }
+        }
+
+        function downloadFile(filename, path) {
+            event.preventDefault();
+            event.stopPropagation();
+            const url = `{{ url_for('download') }}?filename=${encodeURIComponent(filename)}&path=${encodeURIComponent(path)}`;
+            window.location.href = url;
+            toastr.success('Download started...');
+        }
+
+        function deleteItem(name, isFolder, path) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const itemType = isFolder ? 'folder' : 'file';
+            if (!confirm(`Are you sure you want to delete this ${itemType}?`)) {
+                return;
+            }
+
+            const endpoint = isFolder ? '/api/delete-folder' : '/delete';
+            const data = isFolder ?
+                { folder_name: name, path: path } :
+                { filename: name, path: path };
+
+            $.ajax({
+                url: endpoint,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    toastr.success(response.message || `${itemType} deleted successfully`);
+                    setTimeout(() => location.reload(), 1000);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON?.message || `Error deleting ${itemType}`;
+                    toastr.error(error);
+                }
+            });
+        }
+
+        // Modal functions
+        function showCreateFolderModal() {
+            document.getElementById('createFolderModal').classList.add('active');
+            document.getElementById('folderName').focus();
+        }
+
+        function hideCreateFolderModal() {
+            document.getElementById('createFolderModal').classList.remove('active');
+            document.getElementById('createFolderForm').reset();
+        }
+
+        // Upload functionality
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                uploadFiles(files);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                uploadFiles(e.target.files);
+            }
+        });
+
+        function uploadFiles(files) {
+            for (let file of files) {
+                uploadSingleFile(file);
+            }
+        }
+
+        function uploadSingleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('path', currentPath);
+
+            uploadProgress.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = `Uploading ${file.name}...`;
+
+            $.ajax({
+                url: '{{ url_for('upload') }}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function() {
+                    const xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percentComplete = (e.loaded / e.total) * 100;
+                            progressFill.style.width = percentComplete + '%';
+                        }
+                    });
+                    return xhr;
+                },
+                success: function(response) {
+                    toastr.success(response.message || 'File uploaded successfully');
+                    setTimeout(() => location.reload(), 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON?.message || 'Upload failed';
+                    toastr.error(error);
+                    uploadProgress.style.display = 'none';
+                }
+            });
+        }
+
+        // Create folder
+        document.getElementById('createFolderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const folderName = document.getElementById('folderName').value.trim();
+            if (!folderName) {
+                toastr.error('Please enter a folder name');
+                return;
+            }
+
+            $.ajax({
+                url: '{{ url_for('create_folder') }}',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    folder_name: folderName,
+                    path: currentPath
+                }),
+                success: function(response) {
+                    toastr.success(response.message || 'Folder created successfully');
+                    hideCreateFolderModal();
+                    setTimeout(() => location.reload(), 1000);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON?.message || 'Error creating folder';
+                    toastr.error(error);
+                }
+            });
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.file-row');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.file-details h4').textContent.toLowerCase();
+                const isVisible = name.includes(searchTerm);
+                row.style.display = isVisible ? '' : 'none';
+            });
+        });
+
+        // Close modals when clicking outside
+        document.getElementById('createFolderModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideCreateFolderModal();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'f':
+                        e.preventDefault();
+                        document.getElementById('searchInput').focus();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        showCreateFolderModal();
+                        break;
+                }
+            }
+        });
+
+        // Auto-hide upload progress after completion
+        setTimeout(() => {
+            if (uploadProgress.style.display === 'block') {
+                uploadProgress.style.display = 'none';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
